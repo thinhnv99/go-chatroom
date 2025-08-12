@@ -18,6 +18,11 @@ type SignUpRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type SignInRequest struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
 // POST /signup
 func (h *UserHandler) SignUp(c *gin.Context) {
 	var req SignUpRequest
@@ -47,4 +52,33 @@ func (h *UserHandler) SignUp(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"message": "User created"})
+}
+
+// POST /signin
+func (h *UserHandler) SignIn(c *gin.Context) {
+	var req SignInRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	var user models.User
+	if err := h.DB.Where("username = ?", req.Username).First(&user).Error; err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
+		return
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
+		return
+	}
+
+	token, err := GenerateJWT(user.ID, user.Username)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"token": token})
 }
