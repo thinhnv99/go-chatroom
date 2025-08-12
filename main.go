@@ -7,6 +7,5 @@ import (
 func main() {
 	godotenv.Load()
 	db := InitDB()
-	r := SetupRouter(db)
-	r.Run(":8088")
+	SetupRouter(db)
 }
