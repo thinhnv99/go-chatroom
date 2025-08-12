@@ -22,9 +22,15 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 			"status": "OK",
 		})
 	})
-
+	
 	userHandler := handlers.UserHandler{DB: db}
 	r.POST("/signup", userHandler.SignUp)
+
+	r.LoadHTMLGlob("templates/*")
+
+	r.GET("/", handlers.HomePage)
+	r.GET("/signup", handlers.SignUpPage)
+	r.GET("/signin", handlers.SignInPage)
 
 	return r
 }
