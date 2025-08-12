@@ -36,6 +36,7 @@ func SetupRouter(db *gorm.DB) {
 	userHandler := handlers.UserHandler{DB: db}
 	r.POST("/signup", userHandler.SignUp)
 	r.POST("/signin", userHandler.SignIn)
+	r.GET("/me", handlers.AuthMiddleware(), userHandler.UserMe)
 
 	r.Run(":8088")
 }
